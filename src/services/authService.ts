@@ -2,6 +2,8 @@ import User from "../models/user.js";
 import {
   GoogleAccountConflictError,
   GoogleEmailMissingError,
+  GoogleEmailNotVerifiedError,
+  UserAlreadyExistsError,
 } from "../errors/authErrors.js";
 
 interface GoogleUser {
@@ -17,11 +19,17 @@ interface GoogleUser {
 }
 
 export const findOrCreateGoogleUser = async (googleUser: GoogleUser) => {
-  const email = googleUser.emails?.[0]?.value?.toLowerCase().trim();
+  const googleEmail = googleUser.emails?.[0];
 
-  if (!email) {
+  if (!googleEmail?.value) {
     throw new GoogleEmailMissingError();
   }
+
+  if (googleEmail.verified !== true) {
+    throw new GoogleEmailNotVerifiedError();
+  }
+
+  const email = googleEmail.value.toLowerCase().trim();
 
   let user = await User.findOne({
     $or: [
@@ -32,12 +40,25 @@ export const findOrCreateGoogleUser = async (googleUser: GoogleUser) => {
 
   // New user
   if (!user) {
-    user = await User.create({
-      name: googleUser.displayName,
-      email,
-      googleId: googleUser.id,
-      avatar: googleUser.photos?.[0]?.value,
-    });
+    try {
+      user = await User.create({
+        name: googleUser.displayName,
+        email,
+        googleId: googleUser.id,
+        avatar: googleUser.photos?.[0]?.value,
+      });
+    } catch (error: unknown) {
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        error.code === 11000
+      ) {
+        throw new UserAlreadyExistsError();
+      }
+
+      throw error;
+    }
 
     return {
       user,
@@ -47,8 +68,21 @@ export const findOrCreateGoogleUser = async (googleUser: GoogleUser) => {
 
   // Existing account without Google linked
   if (!user.googleId) {
-    user.googleId = googleUser.id;
-    await user.save();
+    try {
+      user.googleId = googleUser.id;
+      await user.save();
+    } catch (error: unknown) {
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        error.code === 11000
+      ) {
+        throw new UserAlreadyExistsError();
+      }
+
+      throw error;
+    }
 
     return {
       user,

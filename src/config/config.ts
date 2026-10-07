@@ -18,6 +18,7 @@ const config = {
   GOOGLE_CLIENT_SECRET: getEnv("GOOGLE_CLIENT_SECRET"),
   GOOGLE_CALLBACK_URL: getEnv("GOOGLE_CALLBACK_URL"),
   JWT_SECRET: getEnv("JWT_SECRET"),
+  NODE_ENV: getEnv("NODE_ENV"),
 };
 
 export default config;

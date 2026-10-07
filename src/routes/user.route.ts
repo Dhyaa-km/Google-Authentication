@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { authMiddleware } from "../middleware/authmiddleware.js";
-import { getCurrentUser } from "../services/userService.js";
+import { getCurrentUser, toPublicUser } from "../services/userService.js";
 
 const router = Router();
 
@@ -9,7 +9,7 @@ router.get("/me", authMiddleware, async (req, res) => {
     const user = await getCurrentUser(req.userId!);
 
     return res.json({
-      user,
+      user: toPublicUser(user),
     });
   } catch (error) {
     console.error("Get current user error:", error);

@@ -4,8 +4,11 @@ import config from "../config/config.js";
 import {
   GoogleAccountConflictError,
   GoogleEmailMissingError,
+  GoogleEmailNotVerifiedError,
+  UserAlreadyExistsError,
 } from "../errors/authErrors.js";
 import { findOrCreateGoogleUser } from "../services/authService.js";
+import { toPublicUser } from "../services/userService.js";
 
 export const googleCallback = async (req: Request, res: Response) => {
   try {
@@ -29,15 +32,15 @@ export const googleCallback = async (req: Request, res: Response) => {
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: false,
-      sameSite: "lax",
+      secure: config.NODE_ENV === "production",
+      sameSite: config.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     return res.status(200).json({
       message: "Logged in with Google",
       isNewUser,
-      user,
+      user: toPublicUser(user),
     });
   } catch (error) {
     console.error("Google callback error:", error);
@@ -48,7 +51,19 @@ export const googleCallback = async (req: Request, res: Response) => {
       });
     }
 
+    if (error instanceof GoogleEmailNotVerifiedError) {
+      return res.status(403).json({
+        message: error.message,
+      });
+    }
+
     if (error instanceof GoogleAccountConflictError) {
+      return res.status(409).json({
+        message: error.message,
+      });
+    }
+
+    if (error instanceof UserAlreadyExistsError) {
       return res.status(409).json({
         message: error.message,
       });
@@ -63,8 +78,8 @@ export const googleCallback = async (req: Request, res: Response) => {
 export const logout = (req: Request, res: Response) => {
   res.clearCookie("token", {
     httpOnly: true,
-    secure: false,
-    sameSite: "lax",
+    secure: config.NODE_ENV === "production",
+    sameSite: config.NODE_ENV === "production" ? "none" : "lax",
   });
 
   return res.status(200).json({

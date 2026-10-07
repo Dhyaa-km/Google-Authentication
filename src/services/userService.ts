@@ -1,4 +1,4 @@
-import User from "../models/user.js";
+import User, { IUser } from "../models/user.js";
 
 export const getCurrentUser = async (userId: string) => {
   const user = await User.findById(userId).select("-password");
@@ -8,4 +8,13 @@ export const getCurrentUser = async (userId: string) => {
   }
 
   return user;
+};
+
+export const toPublicUser = (user: IUser & { _id: unknown }) => {
+  return {
+    id: String(user._id),
+    name: user.name,
+    email: user.email,
+    avatar: user.avatar,
+  };
 };
