@@ -26,6 +26,7 @@ app.get("/", (_req, res) => {
 
 const PORT = 3000;
 
+
 const startServer = async () => {
   await connectDB();
 
