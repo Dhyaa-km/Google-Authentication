@@ -19,6 +19,7 @@ const config = {
   GOOGLE_CALLBACK_URL: getEnv("GOOGLE_CALLBACK_URL"),
   JWT_SECRET: getEnv("JWT_SECRET"),
   NODE_ENV: getEnv("NODE_ENV"),
+  FRONTEND_URL: getEnv("FRONTEND_URL"),
 };
 
 export default config;

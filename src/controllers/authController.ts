@@ -37,11 +37,9 @@ export const googleCallback = async (req: Request, res: Response) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    return res.status(200).json({
-      message: "Logged in with Google",
-      isNewUser,
-      user: toPublicUser(user),
-    });
+
+      return res.redirect("http://localhost:5173/dashboard");
+
   } catch (error) {
     console.error("Google callback error:", error);
 
