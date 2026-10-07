@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import config from "../config/config.js";
+import { JwtPayload } from "../types/auth.js";
 
 export const authMiddleware = (
   req: Request,
@@ -9,21 +10,36 @@ export const authMiddleware = (
 ) => {
   const token = req.cookies.token;
 
-if (!token) {
-  return res.status(401).json({
-    message: "Authentication required",
-  });
-}
+  if (!token) {
+    return res.status(401).json({
+      message: "Authentication required",
+    });
+  }
 
-try {
-  const decoded = jwt.verify(token, config.JWT_SECRET!);
+  try {
+    const decoded = jwt.verify(token, config.JWT_SECRET);
 
-  console.log("Decoded token:", decoded);
+    if (
+      typeof decoded !== "object" ||
+      decoded === null ||
+      !("userId" in decoded) ||
+      typeof decoded.userId !== "string"
+    ) {
+      return res.status(401).json({
+        message: "Invalid token",
+      });
+    }
 
-  next();
-} catch (error) {
-  return res.status(401).json({
-    message: "Invalid or expired token",
-  });
-}
+    const payload: JwtPayload = {
+      userId: decoded.userId,
+    };
+
+    req.userId = payload.userId;
+
+    next();
+  } catch (error) {
+    return res.status(401).json({
+      message: "Invalid or expired token",
+    });
+  }
 };

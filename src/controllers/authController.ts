@@ -1,30 +1,27 @@
 import { Request, Response } from "express";
-import User from "../models/user";
 import jwt from "jsonwebtoken";
-import config from "../config/config";
+import config from "../config/config.js";
+import {
+  GoogleAccountConflictError,
+  GoogleEmailMissingError,
+} from "../errors/authErrors.js";
+import { findOrCreateGoogleUser } from "../services/authService.js";
 
 export const googleCallback = async (req: Request, res: Response) => {
   try {
-    const googleUser = req.user as any;
-
-    let user = await User.findOne({
-      googleId: googleUser.id,
-    });
-
-    if (!user) {
-      user = await User.create({
-        name: googleUser.displayName,
-        email: googleUser.emails[0].value,
-        googleId: googleUser.id,
-        avatar: googleUser.photos?.[0]?.value,
+    if (!req.user) {
+      return res.status(401).json({
+        message: "Google authentication failed",
       });
     }
 
+    const { user, isNewUser } = await findOrCreateGoogleUser(req.user);
+
     const token = jwt.sign(
       {
-        userId: user._id,
+        userId: user._id.toString(),
       },
-      config.JWT_SECRET!,
+      config.JWT_SECRET,
       {
         expiresIn: "7d",
       }
@@ -37,19 +34,40 @@ export const googleCallback = async (req: Request, res: Response) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "Logged in with Google",
+      isNewUser,
       user,
     });
   } catch (error) {
     console.error("Google callback error:", error);
 
-    res.status(500).json({
+    if (error instanceof GoogleEmailMissingError) {
+      return res.status(400).json({
+        message: error.message,
+      });
+    }
+
+    if (error instanceof GoogleAccountConflictError) {
+      return res.status(409).json({
+        message: error.message,
+      });
+    }
+
+    return res.status(500).json({
       message: "Google login failed",
     });
   }
 };
 
-function googleFailure(req: Request, res: Response) {
-    res.status(401).json({ message: 'Google login failed. Please try again.' });
-}
+export const logout = (req: Request, res: Response) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: false,
+    sameSite: "lax",
+  });
+
+  return res.status(200).json({
+    message: "Logged out successfully",
+  });
+};
