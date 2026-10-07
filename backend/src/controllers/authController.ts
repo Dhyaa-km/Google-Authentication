@@ -38,7 +38,7 @@ export const googleCallback = async (req: Request, res: Response) => {
     });
 
 
-      return res.redirect("http://localhost:5173/dashboard");
+      return res.redirect(`${config.FRONTEND_URL}/dashboard`);
 
   } catch (error) {
     console.error("Google callback error:", error);
