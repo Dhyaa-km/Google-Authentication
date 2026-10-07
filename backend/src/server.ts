@@ -12,7 +12,7 @@ const app = express();
 app.use(cookieParser());
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: "https://google-authentication-gilt.vercel.app",
     credentials: true,
   })
 );
