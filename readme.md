@@ -449,4 +449,25 @@ The frontend will normally be available at:
 http://localhost:5173
 ```
 
+### 🧠 Design Notes Worth Knowing
+
+* **Google OAuth:** Google handles the login and verifies the user's Google account before sending the user back to the backend.
+
+* **Account linking:** Users are matched by email, so the same account can be accessed through Google or password login.
+
+* **JWT cookies:** The JWT is stored in an HTTP-only cookie instead of `localStorage`, so JavaScript cannot directly access the token.
+
+* **Authentication middleware:** Protected routes use middleware to check the JWT and identify the logged-in user.
+
+* **Backend as the source of truth:** The frontend uses `/users/me` to check whether the user is authenticated instead of storing authentication state permanently in the browser.
+
+* **Services:** Business logic is kept in service files, while controllers handle requests and responses. This keeps the code easier to maintain.
+
+* **Environment variables:** Secrets such as the Google client secret, JWT secret, and MongoDB connection string are stored in environment variables.
+
+* **CORS and cookies:** The frontend uses `withCredentials` so the browser can send the authentication cookie to the backend.
+
+* **Production cookies:** In production, the cookie uses `Secure` and `SameSite=None` because the frontend and backend are hosted on different domains.
+
+* **Google Testing mode:** While the OAuth app is in Testing mode, only added test users can log in. Publishing the app allows general users to use Google login.
 
