@@ -4,11 +4,6 @@ A full-stack authentication project built to understand and implement **Google O
 
 The project uses a **React + TypeScript** frontend and a **Node.js + Express + MongoDB** backend. Authentication is handled by the backend, while the frontend communicates with it through a REST API.
 
-## 🚀 Live Demo
-
-* **Frontend:** https://google-authentication-gilt.vercel.app
-* **Backend:** https://google-authentication-ru47.onrender.com
-
 ## ✨ Features
 
 * Google OAuth 2.0 authentication
@@ -449,7 +444,7 @@ The frontend will normally be available at:
 http://localhost:5173
 ```
 
-### 🧠 Design Notes Worth Knowing
+## 🧠 Design Notes Worth Knowing
 
 * **Google OAuth:** Google handles the login and verifies the user's Google account before sending the user back to the backend.
 
