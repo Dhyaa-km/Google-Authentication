@@ -6,8 +6,6 @@ import connectDB from "./config/db.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 
-connectDB();
-
 const app = express();
 app.use(cookieParser());
 app.use(
